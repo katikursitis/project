@@ -1,6 +1,7 @@
 import pymysql
 import datetime
 import pymysql.err as db_exception
+from pypika import Query, Table
 
 global conn
 
@@ -16,12 +17,36 @@ def connect():
         conn.autocommit(True)
 
 
+def get_configurations(config_name):
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        config = Table('config')
+        q = Query.from_(config).select('*').where(config.config_name == str(config_name))
+        query = q.get_sql().replace('"', '')
+        cursor.execute(query)
+        res = cursor.fetchone()
+        cursor.close()
+        return res
+    except Exception as e:
+        print(e)
+
+
 def create_user(user_id, user_name):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
-        creation_date = str(datetime.datetime.now())
-        values = (int(user_id), user_name, creation_date)
-        cursor.execute('INSERT into y4NyM3cDcO.users (user_id, user_name, creation_date) VALUES {}'.format(values))
+        creation_date = datetime.datetime.now()
+        users = Table('users')
+        q = Query.into(users)\
+            .columns('user_id', 'user_name', 'creation_date')\
+            .insert(int(user_id), user_name, str(creation_date))
+        query = q.get_sql().replace('"', '')
+        cursor.execute(query)
+        users_extra = Table('users_extra')
+        q = Query.into(users_extra) \
+            .columns('user_id', 'user_name', 'creation_date') \
+            .insert(int(user_id), user_name, creation_date)
+        query = q.get_sql().replace('"', '')
+        cursor.execute(query)
         cursor.close()
     except db_exception.IntegrityError as e:
         cursor.close()
@@ -31,7 +56,10 @@ def create_user(user_id, user_name):
 
 def get_user(user_id):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT * FROM y4NyM3cDcO.users WHERE user_id = " + user_id)
+    users = Table('users')
+    q = Query.from_(users).select('*').where(users.user_id == str(user_id))
+    query = q.get_sql().replace('"', '')
+    cursor.execute(query)
     res = cursor.fetchone()
     cursor.close()
     return res
@@ -39,16 +67,19 @@ def get_user(user_id):
 
 def update_user_name(user_id, user_name):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-    update_data = "user_name = '" + user_name + "'"
-    condition = 'user_id = ' + user_id
-    cursor.execute("UPDATE y4NyM3cDcO.users SET {} WHERE {}".format(update_data, condition))
+    users = Table('users')
+    q = users.update().set(users.user_name, user_name).where(users.user_id == int(user_id))
+    query = q.get_sql().replace('"', '')
+    cursor.execute(query)
     cursor.close()
 
 
 def delete_user(user_id):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-    condition = 'user_id = ' + user_id
-    cursor.execute("DELETE FROM y4NyM3cDcO.users WHERE {}".format(condition))
+    users = Table('users')
+    q = Query.from_(users).delete().where(users.user_id == int(user_id))
+    query = q.get_sql().replace('"', '')
+    cursor.execute(query)
     res = True if cursor.rowcount == 1 else False
     cursor.close()
     return res

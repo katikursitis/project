@@ -1,17 +1,26 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+import db_connector as db
 
-chrome_driver = webdriver.Chrome(executable_path="/Users/Katya/Downloads/chromedriver", )
+db.connect()
 
+config = db.get_configurations('testing')
+web_url = config['web_gateway_url']
+browser = config['browser']
+
+web_browser = getattr(webdriver, browser)
+chrome_driver = web_browser(executable_path="/Users/Katya/Downloads/chromedriver", )
 
 try:
-    chrome_driver.get("http://127.0.0.1:5001/users/get_user_data/1")
+    user_id = '1'
+    chrome_driver.get(web_url + user_id)
     chrome_driver.implicitly_wait(3)
     user_element = chrome_driver.find_element_by_id("user")
     print(user_element.text)
     chrome_driver.quit()
 except NoSuchElementException:
     print('Element not found')
+finally:
     chrome_driver.quit()
 
 
