@@ -3,6 +3,7 @@ import db_connector as db
 
 app = Flask(__name__)
 
+# connect to db
 db.connect()
 
 

@@ -6,6 +6,7 @@ from pypika import Query, Table
 global conn
 
 
+# general function to connect to db
 def connect():
     global conn
     try:
@@ -17,6 +18,7 @@ def connect():
         conn.autocommit(True)
 
 
+# get configuration from db by config_name
 def get_configurations(config_name):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
@@ -31,13 +33,16 @@ def get_configurations(config_name):
         print(e)
 
 
+# insert new user to db by user_id and user_name, add creation date
+# insert new user to users_extra table with creation date as datetime type
+# throw error if the user already exist
 def create_user(user_id, user_name):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         creation_date = datetime.datetime.now()
         users = Table('users')
-        q = Query.into(users)\
-            .columns('user_id', 'user_name', 'creation_date')\
+        q = Query.into(users) \
+            .columns('user_id', 'user_name', 'creation_date') \
             .insert(int(user_id), user_name, str(creation_date))
         query = q.get_sql().replace('"', '')
         cursor.execute(query)
@@ -54,6 +59,7 @@ def create_user(user_id, user_name):
         raise Exception('id already exists')
 
 
+# get user from db by user_id
 def get_user(user_id):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     users = Table('users')
@@ -65,6 +71,7 @@ def get_user(user_id):
     return res
 
 
+# update user_name by user_id
 def update_user_name(user_id, user_name):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     users = Table('users')
@@ -74,6 +81,7 @@ def update_user_name(user_id, user_name):
     cursor.close()
 
 
+# delete user from db by user_id
 def delete_user(user_id):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     users = Table('users')
