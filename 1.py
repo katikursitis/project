@@ -1,1 +1,1 @@
-print('Katya')
+print(222)
