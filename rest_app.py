@@ -1,3 +1,5 @@
+import os
+import signal
 from flask import Flask, request
 import db_connector as db
 
@@ -60,6 +62,13 @@ def delete_user(user_id):
     except Exception as e:
         print(e)
         return {'status': 'error', 'reason': 'Internal error'}, 500
+
+
+@app.route('/stop_server')
+def stop_server():
+    db.close_connection()
+    os.kill(os.getpid(), signal.SIGINT)
+    return 'Server stopped'
 
 
 @app.errorhandler(404)

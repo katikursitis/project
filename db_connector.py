@@ -91,3 +91,8 @@ def delete_user(user_id):
     res = True if cursor.rowcount == 1 else False
     cursor.close()
     return res
+
+
+def close_connection():
+    global conn
+    conn.close()
